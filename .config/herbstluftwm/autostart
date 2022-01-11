@@ -1,0 +1,295 @@
+#!/usr/bin/env bash
+
+function run {
+  if ! pgrep $1 ;
+  then
+    $@&
+  fi
+}
+
+#herbstluftwm start
+hc() {
+    herbstclient "$@"
+}
+
+hc emit_hook reload
+
+feh --randomize --no-fehbg --bg-fill ~/Pictures/bgs/*
+
+# ENV
+#source ~/.profile
+
+# KEYBINDINGS
+#export MANPAGER=nvim
+# remove all existing keybindings
+hc keyunbind --all
+# Mod=Mod4   # Use the super key as the main modifier
+
+hc keybind Mod4-Shift-r reload
+hc keybind Mod4-q close
+hc keybind Mod4-e spawn neovide
+hc keybind Mod4-w spawn qutebrowser
+hc keybind Mod4-d spawn rofi -show drun -columns 3
+hc keybind Mod4-0 spawn rofi -show menu -modi "menu:rofi-power-menu"
+
+# MOVEMENTS
+
+hc keybind Mod4-Return spawn "${TERMINAL:-alacritty}" # use your $TERMINAL with xterm as fallback
+# focusing clients
+hc keybind Mod4-Left  focus left
+hc keybind Mod4-Down  focus down
+hc keybind Mod4-Up    focus up
+hc keybind Mod4-Right focus right
+hc keybind Mod4-h     focus left
+hc keybind Mod4-j     focus down
+hc keybind Mod4-k     focus up
+hc keybind Mod4-l     focus right
+
+# moving clients to ... on single Monitor
+hc keybind Mod4-Shift-Left  shift left
+hc keybind Mod4-Shift-Down  shift down
+hc keybind Mod4-Shift-Up    shift up
+hc keybind Mod4-Shift-Right shift right
+hc keybind Mod4-Shift-h     shift left
+hc keybind Mod4-Shift-j     shift down
+hc keybind Mod4-Shift-k     shift up
+hc keybind Mod4-Shift-l     shift right
+
+# moving clients to ... on dual monitor
+# hc keybind Mod4-Shift-h chain , lock , shift_to_monitor -l , focus_monitor -l , unlock
+# hc keybind Mod4-Shift-Left chain , lock , shift_to_monitor -l , focus_monitor -l , unlock
+# hc keybind Mod4-Shift-j chain , lock , shift_to_monitor -l , focus_monitor -l , unlock
+# hc keybind Mod4-Shift-Down chain , lock , shift_to_monitor -l , focus_monitor -l , unlock
+# hc keybind Mod4-Shift-k chain , lock , shift_to_monitor -r , focus_monitor -r , unlock
+# hc keybind Mod4-Shift-Up chain , lock , shift_to_monitor -r , focus_monitor -r , unlock
+# hc keybind Mod4-Shift-l chain , lock , shift_to_monitor -r , focus_monitor -r , unlock
+# hc keybind Mod4-Shift-Right chain , lock , shift_to_monitor -r , focus_monitor -r , unlock
+
+# FRAMES
+
+# create an empty frame at the specified direction
+hc keybind Mod4-u       split   bottom  0.5
+hc keybind Mod4-o       split   right   0.5
+# let the current frame explode into subframes
+hc keybind Mod4-Control-space split explode
+# remove frame
+hc keybind Mod4-r remove
+
+# resizing frames
+resizestep=0.01
+hc keybind Mod4-Control-h       resize left  +$resizestep
+hc keybind Mod4-Control-j       resize down  +$resizestep
+hc keybind Mod4-Control-k       resize up    +$resizestep
+hc keybind Mod4-Control-l       resize right +$resizestep
+hc keybind Mod4-Control-Left    resize left  +$resizestep
+hc keybind Mod4-Control-Down    resize down  +$resizestep
+hc keybind Mod4-Control-Up      resize up    +$resizestep
+hc keybind Mod4-Control-Right   resize right +$resizestep
+
+# TAGS or WORKSPACES
+
+#names to display in menu
+#tag_names=( {1..9} )
+#tag_names=("Web" "Chat" "Edit" "Meld" "Vb" "Mail" "Video" "Image" "Files" "Music")
+tag_names=("I" "II" "III" "IV" "V" "VI" "VII" "VIII" "IX")
+
+tag_keys=( {1..9} )
+
+hc rename default "${tag_names[0]}" || true
+for i in ${!tag_names[@]} ; do
+  hc add "${tag_names[$i]}"
+  # horizontal tiling as standard
+  hc use_index $i
+  hc set_layout max
+  hc floating true
+  key="${tag_keys[$i]}"
+  if ! [ -z "$key" ] ; then
+    hc keybind "Mod4-$key" use_index "$i"
+    hc keybind "Mod4-Shift-$key" chain , move_index "$i" , use_index "$i"
+  fi
+done
+hc use_index 0
+
+# layouting
+hc keybind Mod4-s floating toggle
+hc keybind Mod4-f fullscreen toggle
+hc keybind Mod4-p pseudotile toggle
+# The following cycles through the available layouts within a frame, but skips
+# layouts, if the layout change wouldn't affect the actual window positions.
+# I.e. if there are two windows within a frame, the grid layout is skipped.
+hc keybind Mod4-space                                                           \
+            or , and . compare tags.focus.curframe_wcount = 2                   \
+                     . cycle_layout +1 horizontal vertical max grid    \
+               , cycle_layout +1
+
+hc keybind XF86AudioPlay spawn playerctl play-pause
+hc keybind XF86AudioNext spawn playerctl next
+hc keybind XF86AudioPrev spawn playerctl previous
+
+hc keybind XF86AudioLowerVolume spawn "pactl set-source-volume $(pactl get-default-sink) -5%"
+hc keybind XF86AudioRaiseVolume spawn pactl set-source-volume $(pactl get-default-sink) +5%
+
+hc keybind Super+m set_attr clients.focus.minimized on
+hc keybind Super+Shift+m jumpto last-minimized
+
+# mouse
+hc mouseunbind --all
+hc mousebind Mod4-Button1 move
+hc mousebind Mod4-Button2 zoom
+hc mousebind Mod4-Button3 resize
+
+# focus on ...
+hc keybind Mod4-BackSpace   cycle_monitor
+hc keybind Mod4-Tab         cycle +1
+hc keybind Mod4-Shift-Tab   cycle -1
+hc keybind Mod4-Ctrl-Tab         cycle_all +1
+hc keybind Mod4-Ctrl-Shift-Tab   cycle_all -1
+hc keybind Control-Mod1-Left    focus left
+hc keybind Control-Mod1-Up      focus up
+hc keybind Control-Mod1-Right   focus right
+hc keybind Control-Mod1-Down    focus down
+hc keybind Mod4-Mod1-Tab         use_index +1 --skip-visible
+hc keybind Mod4-Mod1-Shift-Tab   use_index -1 --skip-visible
+#hc keybind Mod4-c cycle
+hc keybind Mod4-i jumpto urgent
+
+#reset prior to setting the theme
+hc attr theme.reset 1
+
+# Attribute
+hc attr theme.active.color '#6790EB'
+hc attr theme.active.inner_color '#141414'
+hc attr theme.active.outer_color '#6790EB'
+hc attr theme.background_color '#141414'
+hc attr theme.border_width 2
+hc attr theme.floating.border_width 2
+hc attr theme.floating.outer_width 1
+hc attr theme.floating.outer_color black
+hc attr theme.inner_color black
+hc attr theme.inner_width 1
+hc attr theme.normal.color '#141414'
+hc attr theme.urgent.color orange
+
+# Set
+hc set always_show_frame 1
+hc set focus_follows_mouse 1
+hc set frame_border_active_color '#6790EB'
+hc set frame_border_normal_color '#141414'
+hc set frame_bg_normal_color '#141414'
+hc set frame_bg_active_color '#000000'
+hc set frame_border_width 2
+hc set frame_bg_transparent 1
+hc set frame_transparent_width 0
+hc set frame_gap 2
+hc set frame_padding 0
+hc set mouse_recenter_gap 0
+hc set smart_frame_surroundings 1
+hc set smart_window_surroundings 0
+hc set tree_style '╾│ ├└╼─┐'
+hc set window_gap 2
+
+
+
+
+# RULES
+hc unrule -F
+hc rule focus=on # normally focus new clients
+hc rule floatplacement=center
+
+# assign applications to workspaces or tags -using numbers for tags
+# These are used then -- tag_names=( {1..10} )
+
+# hc rule class~'(Navigator|Firefox|Vivaldi-stable|Vivaldi-snapshot|Chromium|Google-chrome|Brave|Brave-browser)' tag=1 switchtag=on focus=on
+# hc rule class~'(Atom|Subl|Geany|Brackets|Code-oss|Code|TelegramDesktop|Discord)' tag=2 switchtag=on focus=on
+# hc rule class~'(Inkscape|Nomacs|Ristretto|Nitrogen|Feh)' tag=3 switchtag=on focus=on
+# hc rule class~'(Gimp)' tag=4 switchtag=on focus=on
+# hc rule class~'(Meld|org.gnome.Meld)' tag=5 switchtag=on focus=on
+# hc rule class~'(Vlc|Mpv)' tag=6 switchtag=on focus=on
+# hc rule class~'(VirtualBox Manager|VirtualBox Machine|Vmplayer)' tag=7 switchtag=on focus=on
+# hc rule class~'(Thunar|Nemo|Caja|Nautilus|org.gnome.Nautilus|Pcmanfm|Pcmanfm-qt)' tag=8 switchtag=on focus=on
+# hc rule class~'(Evolution|Geary|Mail|Thunderbird)' tag=9 switchtag=on focus=on
+# hc rule class~'(Spotify|Pragha|Clementine|Deadbeef|Audacious)' tag=10 switchtag=on focus=on
+
+# assign applications to workspaces or tags - using names for tags
+# These are used then -- #tag_names=("Web" "Chat" "Edit" "Meld" "Vb" "Mail" "Video" "Image" "Files" "Music")
+
+# hc rule class~'(Navigator|Firefox|Vivaldi-stable|Vivaldi-snapshot|Chromium|Google-chrome|Brave|Brave-browser)' tag='Web' switchtag=on focus=on
+# hc rule class~'(TelegramDesktop|Discord)' tag='Chat' switchtag=on focus=on
+# hc rule class~'(Atom|Subl|Geany|Brackets|Code-oss|Code)' tag='Edit' switchtag=on focus=on
+# hc rule class~'(Inkscape|Nomacs|Ristretto|Nitrogen|Feh)' tag='Image' switchtag=on focus=on
+# hc rule class~'(Gimp)' tag='Image' switchtag=on focus=on
+# hc rule class~'(Meld|org.gnome.Meld)' tag='Meld' switchtag=on focus=on
+# hc rule class~'(Vlc|Mpv)' tag='Video' switchtag=on focus=on
+# hc rule class~'(VirtualBox Manager|VirtualBox Machine|Vmplayer)' tag='Vb' switchtag=on focus=on
+# hc rule class~'(Thunar|Nemo|Caja|Nautilus|org.gnome.Nautilus|Pcmanfm|Pcmanfm-qt)' tag='Files' switchtag=on focus=on
+# hc rule class~'(Evolution|Geary|Mail|Thunderbird)' tag='Mail' switchtag=on focus=on
+# hc rule class~'(Spotify|Pragha|Clementine|Deadbeef|Audacious)' tag='Music' switchtag=on focus=on
+
+# give focus to most common terminals
+#hc rule class~'(.*[Rr]xvt.*|.*[Tt]erm|Konsole)' focus=on
+hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' pseudotile=on
+#hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' manage=off
+hc rule windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on
+hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK|DESKTOP)' manage=off
+hc rule class=Oblogout fullscreen=on
+hc rule class=Insync pseudotile=on
+hc rule class=VirtualBox fullscreen=on
+
+hc rule class=Pavucontrol floating=on floatplacement=center
+#hc rule class=Alacritty floating=on floatplacement=center
+# unlock, just to be sure
+hc unlock
+
+#Dualmonitor setup
+# Find out your monitor name with xrandr or arandr (save and you get this line)
+#xrandr --output VGA-1 --primary --mode 1360x768 --pos 0x0 --rotate normal
+#xrandr --output DP2 --primary --mode 1920x1080 --rate 60.00 --output LVDS1 --off &
+#xrandr --output LVDS1 --mode 1366x768 --output DP3 --mode 1920x1080 --right-of LVDS1
+#xrandr --output HDMI2 --mode 1920x1080 --pos 1920x0 --rotate normal --output HDMI1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output VIRTUAL1 --off
+
+#Dualmonitor setup
+# hc detect_monitors
+#hc set_monitors 1920x1080+0+0 1920x1080+1920+0
+
+#room for polybar on both monitors
+#single polybar at top
+hc pad 0 20 0 0
+#second polybar at bottom
+# hc pad 0 20 0 20 0
+#single polybar at top
+#hc pad 1 30
+#second polybar at bottom
+#hc pad 1 30 0 30 0
+
+#change your keyboard if you need it
+#setxkbmap -layout be
+
+#Autostart applications
+/usr/lib/xfce4/notifyd/xfce4-notifyd &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &>/dev/null
+killall conky picom ; sleep 1
+conky -c ~/.config/conky/statusbar.conf
+picom &
+#xsetroot -solid '#000000'
+#xsetroot -cursor_name left_ptr &
+
+# conky -c $HOME/.config/herbstluftwm/system-overview &
+# run variety &
+# nm-applet &
+# xfce4-power-manager &
+# numlockx on &
+# #blueberry-tray &
+# run volumeicon &
+# transmission-qt &
+# nitrogen --restore &
+# caffeine &
+# vivaldi-stable &
+# firefox &
+# thunar &
+# dropbox &
+# run insync start &
+# discord &
+# run telegram-desktop &
+# spotify &
+# atom &
+# exec screenkey
