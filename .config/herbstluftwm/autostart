@@ -17,24 +17,24 @@ hc emit_hook reload
 feh --randomize --no-fehbg --bg-fill ~/Pictures/bgs/*
 
 # ENV
-#source ~/.profile
+source ~/.profile
 
 # KEYBINDINGS
-#export MANPAGER=nvim
 # remove all existing keybindings
 hc keyunbind --all
 # Mod=Mod4   # Use the super key as the main modifier
 
 hc keybind Mod4-Shift-r reload
 hc keybind Mod4-q close
-hc keybind Mod4-e spawn neovide
-hc keybind Mod4-w spawn qutebrowser
-hc keybind Mod4-d spawn rofi -show drun -columns 3
+
+hc keybind Mod4-Return spawn "${TERMINAL}" # use your $TERMINAL with xterm as fallback
+hc keybind Mod4-e spawn "${TERMINAL}" -e "${EDITOR}"
+hc keybind Mod4-w spawn "${BROWSER}"
+hc keybind Mod4-d spawn rofi -show
 hc keybind Mod4-0 spawn rofi -show menu -modi "menu:rofi-power-menu"
 
 # MOVEMENTS
 
-hc keybind Mod4-Return spawn "${TERMINAL:-alacritty}" # use your $TERMINAL with xterm as fallback
 # focusing clients
 hc keybind Mod4-Left  focus left
 hc keybind Mod4-Down  focus down
@@ -122,15 +122,10 @@ hc keybind Mod4-space                                                           
                      . cycle_layout +1 horizontal vertical max grid    \
                , cycle_layout +1
 
-hc keybind XF86AudioPlay spawn playerctl play-pause
-hc keybind XF86AudioNext spawn playerctl next
-hc keybind XF86AudioPrev spawn playerctl previous
+hc keybind Mod4+m set_attr clients.focus.minimized on
+hc keybind Mod4+Shift+m jumpto last-minimized
 
-hc keybind XF86AudioLowerVolume spawn "pactl set-source-volume $(pactl get-default-sink) -5%"
-hc keybind XF86AudioRaiseVolume spawn pactl set-source-volume $(pactl get-default-sink) +5%
-
-hc keybind Super+m set_attr clients.focus.minimized on
-hc keybind Super+Shift+m jumpto last-minimized
+hc keybind Mod4+Ctrl+m spawn pavucontrol -t 3
 
 # mouse
 hc mouseunbind --all
@@ -172,7 +167,8 @@ hc attr theme.urgent.color orange
 
 # Set
 hc set always_show_frame 1
-hc set focus_follows_mouse 1
+hc set focus_follows_mouse 0
+hc set raise_on_focus_temporarily 0
 hc set frame_border_active_color '#6790EB'
 hc set frame_border_normal_color '#141414'
 hc set frame_bg_normal_color '#141414'
@@ -253,7 +249,7 @@ hc unlock
 
 #room for polybar on both monitors
 #single polybar at top
-hc pad 0 20 0 0
+#hc pad 0 20 0 0
 #second polybar at bottom
 # hc pad 0 20 0 20 0
 #single polybar at top
@@ -265,11 +261,9 @@ hc pad 0 20 0 0
 #setxkbmap -layout be
 
 #Autostart applications
-/usr/lib/xfce4/notifyd/xfce4-notifyd &
-/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &>/dev/null
-killall conky picom ; sleep 1
-conky -c ~/.config/conky/statusbar.conf
-picom &
+#/usr/lib/xfce4/notifyd/xfce4-notifyd &
+#conky -c ~/.config/conky/statusbar.conf
+#picom &
 #xsetroot -solid '#000000'
 #xsetroot -cursor_name left_ptr &
 
