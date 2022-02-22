@@ -122,8 +122,8 @@ hc keybind Mod4-space                                                           
                      . cycle_layout +1 horizontal vertical max grid    \
                , cycle_layout +1
 
-hc keybind Mod4+m set_attr clients.focus.minimized on
-hc keybind Mod4+Shift+m jumpto last-minimized
+# hc keybind Mod4+m set_attr clients.focus.minimized on
+# hc keybind Mod4+Shift+m jumpto last-minimized
 
 hc keybind Mod4+Ctrl+m spawn pavucontrol -t 3
 
@@ -167,8 +167,8 @@ hc attr theme.urgent.color orange
 
 # Set
 hc set always_show_frame 1
-hc set focus_follows_mouse 0
-hc set raise_on_focus_temporarily 0
+hc set focus_follows_mouse 1
+hc set raise_on_focus_temporarily 1
 hc set frame_border_active_color '#6790EB'
 hc set frame_border_normal_color '#141414'
 hc set frame_bg_normal_color '#141414'

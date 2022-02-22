@@ -1,0 +1,3 @@
+[submodule "/home/df/.config/nvim"]
+	path = /home/df/.config/nvim
+	url = https://github.com/NvChad/NvChad
